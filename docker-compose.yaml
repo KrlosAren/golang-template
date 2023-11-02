@@ -1,0 +1,35 @@
+version: "3.8"
+
+volumes:
+  db_data: {}
+
+services:
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hostal_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app:Z
+    ports:
+      - 8000:8000
+
+  
+  postgres:
+    image: postgres:16.0
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgres/data:Z
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -d hostal_app_db -U hostal_app_user"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    ports:
+      - 5433:5432
